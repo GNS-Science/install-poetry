@@ -2,7 +2,11 @@
 
 set -eo pipefail
 
-INSTALL_PATH="$HOME/.local"
+download_script() {
+  python3 -c 'import urllib.request, sys; print(urllib.request.urlopen(f"{sys.argv[1]}").read().decode("utf8"))' $1
+}
+
+INSTALL_PATH="${POETRY_HOME:-$HOME/.local}"
 
 YELLOW="\033[33m"
 RESET="\033[0m"
@@ -10,9 +14,9 @@ RESET="\033[0m"
 INSTALLATION_SCRIPT="$(mktemp)"
 
 if [ "${RUNNER_OS}" == "Windows" ]; then
-  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/48339106eb0d403a3c66519317488c8185844b32/install-poetry.py --output "$INSTALLATION_SCRIPT"
+  download_script https://raw.githubusercontent.com/python-poetry/poetry/48339106eb0d403a3c66519317488c8185844b32/install-poetry.py >"$INSTALLATION_SCRIPT"
 else
-  curl -sSL https://install.python-poetry.org/ --output "$INSTALLATION_SCRIPT"
+  download_script https://install.python-poetry.org/ >"$INSTALLATION_SCRIPT"
 fi
 
 echo -e "\n${YELLOW}Setting Poetry installation path as $INSTALL_PATH${RESET}\n"
@@ -36,6 +40,15 @@ VIRTUALENVS_PATH="${VIRTUALENVS_PATH/#\~/$HOME}"
 poetry config virtualenvs.create "$VIRTUALENVS_CREATE"
 poetry config virtualenvs.in-project "$VIRTUALENVS_IN_PROJECT"
 poetry config virtualenvs.path "$VIRTUALENVS_PATH"
+
+# Parse plugin array from string, handle whitespace or newline delimiters
+if ! [ -z "$POETRY_PLUGINS" ]; then
+  plugins="$(echo $POETRY_PLUGINS | tr -s ' ')" # Replace linesep to space
+  if [[ "$plugins" && "$plugins" != " " ]]; then
+    echo "Installing plugins: ${plugins}"
+    poetry self add ${plugins} || exit 1
+  fi
+fi
 
 config="$(poetry config --list)"
 

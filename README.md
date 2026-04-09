@@ -22,7 +22,7 @@ If you want to set Poetry config settings, or install a specific version, you ca
 - name: Install and configure Poetry
   uses: snok/install-poetry@v1
   with:
-    version: 1.3.2
+    version: 2.1.3
     virtualenvs-create: true
     virtualenvs-in-project: false
     virtualenvs-path: ~/my-custom-path
@@ -31,7 +31,7 @@ If you want to set Poetry config settings, or install a specific version, you ca
 
 If you need to pass extra arguments to the installer script, you can specify these with `installation-arguments`.
 
-The action is fully tested for MacOS and Ubuntu runners, on Poetry versions >= 1.1. If you're using this with Windows, see the [Running on Windows](#running-on-windows) section.
+The action is fully tested for macOS and Ubuntu runners, on Poetry versions >= 1.1. If you're using this with Windows, see the [Running on Windows](#running-on-windows) section.
 
 ## Defaults
 
@@ -73,12 +73,21 @@ This section contains a collection of workflow examples to try and help
 
 Some examples are a bit long, so here are some links
 
-- [Testing](#testing)
-- [Testing (using an OS matrix)](#testing-using-a-matrix)
-- [Codecov upload](#codecov-upload)
-- [Running on Windows](#running-on-windows)
-- [Virtualenv variations](#virtualenv-variations)
-- [Caching the Poetry installation](#caching-the-poetry-installation)
+- [Install Poetry Action](#install-poetry-action)
+  - [Usage](#usage)
+  - [Defaults](#defaults)
+  - [Workflow examples and tips](#workflow-examples-and-tips)
+      - [Testing](#testing)
+      - [Testing using a matrix](#testing-using-a-matrix)
+      - [Codecov upload](#codecov-upload)
+      - [Running on Windows](#running-on-windows)
+        - [Caching on Windows runners](#caching-on-windows-runners)
+      - [Virtualenv variations](#virtualenv-variations)
+      - [Caching the Poetry installation](#caching-the-poetry-installation)
+      - [Installing Poetry Plugins](#installing-poetry-plugins)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Showing your support](#showing-your-support)
 
 #### Testing
 
@@ -97,12 +106,12 @@ jobs:
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Set up python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
@@ -111,6 +120,7 @@ jobs:
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+          virtualenvs-path: .venv
           installer-parallel: true
 
       #----------------------------------------------
@@ -118,7 +128,7 @@ jobs:
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -162,12 +172,12 @@ jobs:
       #----------------------------------------------
       #       check-out repo and set-up python
       #----------------------------------------------
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
       #----------------------------------------------
       #        load pip cache if cache exists
       #----------------------------------------------
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip
@@ -186,18 +196,18 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-latest", "macos-latest" ]
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
-        django-version: ["3", "4" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.13" ]
+        django-version: [ "4", "5" ]
     runs-on: ${{ matrix.os }}
     steps:
       #----------------------------------------------
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Set up python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
@@ -213,7 +223,7 @@ jobs:
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -262,11 +272,11 @@ jobs:
       #----------------------------------------------
       #       check-out repo and set-up python
       #----------------------------------------------
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         id: setup-python
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
@@ -280,7 +290,7 @@ jobs:
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -305,7 +315,7 @@ jobs:
       # (requires CODECOV_TOKEN in repository secrets)
       #----------------------------------------------
       - name: Upload coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
           file: ./coverage.xml
@@ -365,12 +375,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Set up python
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -378,7 +388,7 @@ jobs:
           virtualenvs-in-project: true
       - name: Load cached venv
         id: cached-pip-wheels
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -422,7 +432,7 @@ There are two other relevant scenarios:
 
    If you're using the default settings, the venv location changes from `.venv` to using `{cache-dir}/virtualenvs`. You
    can also change the path to whatever you'd like. Generally though, this can make things a little tricky, because the
-   directory will be vary depending on the OS, making it harder to write OS agnostic workflows.
+   directory will be vary depending on the OS, making it harder to write OS-agnostic workflows.
 
    A solution to this is to bypass this issue completely by taking advantage of Poetry's `poetry run` command.
 
@@ -482,14 +492,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Set up python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       - name: Load cached Poetry installation
         id: cached-poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.local  # the path depends on the OS
           key: poetry-0  # increment to reset cache
@@ -499,6 +509,36 @@ jobs:
 ```
 
 The directory to cache will depend on the operating system of the runner.
+
+Note that when the cache is hit, and the Install Poetry step is skipped, configuration options are not re-applied. The cached Poetry installation will now run with default settings. To make things work the same, you may add a dedicated configuration step to re-apply your configurations. For example:
+
+```yaml
+- name: Configure poetry
+  if: steps.cached-poetry.outputs.cache-hit == 'true'
+  run: poetry config virtualenvs.in-project true
+```
+
+Or consider using a config.toml file to store you configuration options. See details in the [Poetry configuration docs](https://python-poetry.org/docs/configuration/).
+
+#### Installing Poetry Plugins
+
+With Poetry 1.2 or later, you can use this action to install plugins:
+
+```yaml
+- uses: snok/install-poetry@v1
+  with:
+    plugins: poetry-plugin-a
+```
+
+You can use a whitespace delimited list:
+
+```yaml
+- uses: snok/install-poetry@v1
+  with:
+    plugins: |
+      poetry-plugin-a
+      poetry-plugin-b
+```
 
 ## Contributing
 

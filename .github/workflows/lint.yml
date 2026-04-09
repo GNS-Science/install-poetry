@@ -6,15 +6,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
       - run: pip install pre-commit
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         id: pre-commit-cache
         with:
           path: ~/.cache/pre-commit
           key: key-0
-      - uses: mfinelli/setup-shfmt@v2
+      - uses: mfinelli/setup-shfmt@v4
       - run: pre-commit run --all-files

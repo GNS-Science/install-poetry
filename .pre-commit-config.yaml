@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: check-merge-conflict
       - id: check-case-conflict
@@ -10,7 +10,7 @@ repos:
       - id: mixed-line-ending
 
   - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.21.0
+    rev: 0.33.0
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
@@ -21,3 +21,10 @@ repos:
       - id: shfmt
       - id: shellcheck
         files: 'main\/.sh'
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+        args:
+          - --shellcheck=
